@@ -18,14 +18,42 @@ export default function GelirlerPage() {
         setModal(true);
     };
 
-    const save = () => {
+    // GERÇEK BACKEND KAYDI (POST)
+    const save = async () => {
         if (!form.baslik || !form.tutar) return;
-        const item = { ...form, tutar: Number(form.tutar), id: editing?.id || Date.now() };
-        setData(d => ({ ...d, gelirler: editing ? d.gelirler.map(x => x.id === editing.id ? item : x) : [...d.gelirler, item] }));
-        setModal(false);
+        const yeniGelir = { ...form, tutar: Number(form.tutar) };
+
+        try {
+            if (editing) {
+                // Düzenleme (PUT) rotasını backend'de yazmadığımız için şimdilik lokalde güncelliyoruz
+                setData(d => ({ ...d, gelirler: d.gelirler.map(x => x.id === editing.id ? { ...yeniGelir, id: editing.id } : x) }));
+            } else {
+                // Gerçek Veritabanına Ekle!
+                const response = await fetch("http://localhost:5001/api/gelirler", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(yeniGelir)
+                });
+                const kaydedilen = await response.json();
+                kaydedilen.id = kaydedilen._id; // MongoDB ID uyumu
+
+                setData(d => ({ ...d, gelirler: [...d.gelirler, kaydedilen] }));
+            }
+            setModal(false);
+        } catch (error) {
+            console.error("Gelir eklenirken hata:", error);
+        }
     };
 
-    const del = id => setData(d => ({ ...d, gelirler: d.gelirler.filter(x => x.id !== id) }));
+    // GERÇEK BACKEND SİLME (DELETE)
+    const del = async (id) => {
+        try {
+            await fetch(`http://localhost:5001/api/gelirler/${id}`, { method: "DELETE" });
+            setData(d => ({ ...d, gelirler: d.gelirler.filter(x => x.id !== id) }));
+        } catch (error) {
+            console.error("Gelir silinirken hata:", error);
+        }
+    };
 
     return (
         <div>

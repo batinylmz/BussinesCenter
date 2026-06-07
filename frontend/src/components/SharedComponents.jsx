@@ -80,9 +80,13 @@ export function ProgressBar({ pct, color }) {
 
 export function ActionBtns({ onEdit, onDelete }) {
     return (
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <button onClick={onEdit} title="Düzenle" style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: C.textMuted, padding: 4 }}>✏️</button>
-            <button onClick={onDelete} title="Sil" style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: C.textMuted, padding: 4 }}>🗑️</button>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <button onClick={onEdit} style={{ background: "none", border: "none", color: C.primary, cursor: "pointer", fontWeight: 600, fontSize: 13, padding: 0 }}>
+                Düzenle
+            </button>
+            <button onClick={onDelete} style={{ background: "none", border: "none", color: C.danger, cursor: "pointer", fontWeight: 600, fontSize: 13, padding: 0 }}>
+                Sil
+            </button>
         </div>
     );
 }
