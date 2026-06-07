@@ -1,18 +1,36 @@
 const express = require("express");
 const router = express.Router();
+const Gelir = require("../models/Gelir"); // Az önce oluşturduğumuz modeli çağırdık
 
-// Şimdilik sahte veri dönen bir GET isteği
-router.get("/", (req, res) => {
-    res.json([
-        { id: 1, baslik: "Backend'den Gelen Gelir", tutar: 15000, kategori: "Proje" }
-    ]);
+// 1. GET: Veritabanındaki tüm gelirleri çekip React'a gönder
+router.get("/", async (req, res) => {
+    try {
+        const gelirler = await Gelir.find().sort({ createdAt: -1 }); // En yeniler en üstte
+        res.json(gelirler);
+    } catch (err) {
+        res.status(500).json({ mesaj: "Gelirler getirilirken hata oluştu", hata: err.message });
+    }
 });
 
-// Yeni gelir ekleme rotası (POST)
-router.post("/", (req, res) => {
-    const yeniGelir = req.body;
-    console.log("Gelen veri:", yeniGelir);
-    res.status(201).json({ mesaj: "Gelir başarıyla eklendi", veri: yeniGelir });
+// 2. POST: React'tan gelen yeni geliri veritabanına kaydet
+router.post("/", async (req, res) => {
+    try {
+        const yeniGelir = new Gelir(req.body);
+        const kaydedilenGelir = await yeniGelir.save(); // Veritabanına yaz!
+        res.status(201).json(kaydedilenGelir);
+    } catch (err) {
+        res.status(400).json({ mesaj: "Gelir eklenemedi", hata: err.message });
+    }
+});
+
+// 3. DELETE: React'tan gelen ID'ye göre geliri veritabanından sil
+router.delete("/:id", async (req, res) => {
+    try {
+        await Gelir.findByIdAndDelete(req.params.id);
+        res.json({ mesaj: "Gelir başarıyla silindi" });
+    } catch (err) {
+        res.status(500).json({ mesaj: "Gelir silinemedi", hata: err.message });
+    }
 });
 
 module.exports = router;
