@@ -6,8 +6,9 @@ import { PageHeader, StatCard, Badge, ActionBtns, Modal, Field, Btn, BtnOutline 
 export default function GiderlerPage() {
     const { data, setData } = useData();
     const [modal, setModal] = useState(false);
-    const [form, setForm] = useState({});
+    const [form, setForm] = useState({ baslik: "", tutar: "", kategori: "", tarih: "", departman: "", aciklama: "" });
     const [editing, setEditing] = useState(null);
+
     const giderKats = data.kategoriler.filter(k => k.tip === "gider");
     const toplam = data.giderler.reduce((s, x) => s + x.tutar, 0);
 
@@ -17,11 +18,41 @@ export default function GiderlerPage() {
         setModal(true);
     };
 
-    const save = () => {
+    const save = async () => {
         if (!form.baslik || !form.tutar) return;
-        const item = { ...form, tutar: Number(form.tutar), id: editing?.id || Date.now() };
-        setData(d => ({ ...d, giderler: editing ? d.giderler.map(x => x.id === editing.id ? item : x) : [...d.giderler, item] }));
-        setModal(false);
+        const veri = { ...form, tutar: Number(form.tutar) };
+
+        try {
+            if (editing) {
+                const res = await fetch(`http://localhost:5001/api/giderler/${editing.id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(veri)
+                });
+                const guncel = await res.json();
+                guncel.id = guncel._id;
+                setData(d => ({ ...d, giderler: d.giderler.map(x => x.id === editing.id ? guncel : x) }));
+            } else {
+                const res = await fetch("http://localhost:5001/api/giderler", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(veri)
+                });
+                const yeni = await res.json();
+                yeni.id = yeni._id;
+                setData(d => ({ ...d, giderler: [...d.giderler, yeni] }));
+            }
+            setModal(false);
+        } catch (error) { console.error("Gider kaydedilirken hata:", error); }
+    };
+
+    const del = async (id) => {
+        try {
+            await fetch(`http://localhost:5001/api/giderler/${id}`, { method: "DELETE" });
+            setData(d => ({ ...d, giderler: d.giderler.filter(x => x.id !== id) }));
+        } catch (error) {
+            console.error("Gider silinirken hata:", error);
+        }
     };
 
     return (
@@ -30,7 +61,7 @@ export default function GiderlerPage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14, marginBottom: 24 }}>
                 <StatCard label="Toplam Gider" value={fmt(toplam)} icon="📉" iconColor={C.danger} />
                 <StatCard label="İşlem Sayısı" value={data.giderler.length} icon="📋" />
-                <StatCard label="En Büyük Gider" value={fmt(Math.max(...data.giderler.map(g => g.tutar)))} icon="⚠️" iconColor={C.warning} />
+                <StatCard label="Ortalama" value={fmt(toplam / (data.giderler.length || 1))} icon="📊" iconColor={C.purple} />
             </div>
             <div style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
@@ -51,7 +82,7 @@ export default function GiderlerPage() {
                             <td style={{ padding: "12px 16px", color: C.textMuted }}>{g.departman}</td>
                             <td style={{ padding: "12px 16px", color: C.textMuted }}>{g.tarih}</td>
                             <td style={{ padding: "12px 16px", color: C.danger, fontWeight: 700 }}>-{fmt(g.tutar)}</td>
-                            <td style={{ padding: "12px 16px" }}><ActionBtns onEdit={() => open(g)} onDelete={() => setData(d => ({ ...d, giderler: d.giderler.filter(x => x.id !== g.id) }))} /></td>
+                            <td style={{ padding: "12px 16px" }}><ActionBtns onEdit={() => open(g)} onDelete={() => del(g.id)} /></td>
                         </tr>
                     ))}
                     </tbody>

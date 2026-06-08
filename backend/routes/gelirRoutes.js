@@ -32,5 +32,5 @@ router.delete("/:id", async (req, res) => {
         res.status(500).json({ mesaj: "Gelir silinemedi", hata: err.message });
     }
 });
-
+router.put("/:id", async (req, res) => res.json(await Gelir.findByIdAndUpdate(req.params.id, req.body, { new: true })));
 module.exports = router;
