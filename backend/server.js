@@ -13,7 +13,18 @@ mongoose.connect(process.env.MONGO_URI)
     .catch((err) => console.log("❌ MongoDB Bağlantı Hatası:", err));
 
 const gelirRoutes = require("./routes/gelirRoutes");
-app.use("/api/gelirler", gelirRoutes);
+// Route Bağlantıları
+app.use("/api/gelirler", require("./routes/gelirRoutes"));
+app.use("/api/giderler", require("./routes/giderRoutes"));
+app.use("/api/projeler", require("./routes/projeRoutes"));
+app.use("/api/departmanlar", require("./routes/departmanRoutes"));
+
+
+// Test Rotası (Ana sayfaya girilirse bu cevabı ver)
+app.get("/", (req, res) => {
+    res.send("BussinesCenter Backend Çalışıyor 🚀");
+});
+
 
 // Portu 5001 yaptık! AirPlay ile çakışmayacak.
 const PORT = 5001;
