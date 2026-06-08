@@ -1,0 +1,19 @@
+# Şifreler ve Gizli Dosyalar
+.env
+
+# Bağımlılıklar (Çok büyük boyutludurlar, GitHub'a atılmaz)
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Üretim (Build) Dosyaları
+dist/
+build/
+.npm/
+
+# macOS Sistem Dosyaları
+.DS_Store
+
+# IDE Dosyaları
+.idea/
+*.iml
