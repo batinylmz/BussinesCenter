@@ -21,28 +21,30 @@ export default function GelirlerPage() {
     // GERÇEK BACKEND KAYDI (POST)
     const save = async () => {
         if (!form.baslik || !form.tutar) return;
-        const yeniGelir = { ...form, tutar: Number(form.tutar) };
+        const veri = { ...form, tutar: Number(form.tutar) };
 
         try {
             if (editing) {
-                // Düzenleme (PUT) rotasını backend'de yazmadığımız için şimdilik lokalde güncelliyoruz
-                setData(d => ({ ...d, gelirler: d.gelirler.map(x => x.id === editing.id ? { ...yeniGelir, id: editing.id } : x) }));
+                const res = await fetch(`http://localhost:5001/api/gelirler/${editing.id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(veri)
+                });
+                const guncel = await res.json();
+                guncel.id = guncel._id; // MongoDB uyumu
+                setData(d => ({ ...d, gelirler: d.gelirler.map(x => x.id === editing.id ? guncel : x) }));
             } else {
-                // Gerçek Veritabanına Ekle!
-                const response = await fetch("http://localhost:5001/api/gelirler", {
+                const res = await fetch("http://localhost:5001/api/gelirler", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(yeniGelir)
+                    body: JSON.stringify(veri)
                 });
-                const kaydedilen = await response.json();
-                kaydedilen.id = kaydedilen._id; // MongoDB ID uyumu
-
-                setData(d => ({ ...d, gelirler: [...d.gelirler, kaydedilen] }));
+                const yeni = await res.json();
+                yeni.id = yeni._id;
+                setData(d => ({ ...d, gelirler: [...d.gelirler, yeni] }));
             }
             setModal(false);
-        } catch (error) {
-            console.error("Gelir eklenirken hata:", error);
-        }
+        } catch (error) { console.error("Gelir kaydedilirken hata:", error); }
     };
 
     // GERÇEK BACKEND SİLME (DELETE)
