@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useData } from "../context/DataContext";
 import { C, inputSt } from "../utils/constants";
 import { Field } from "../components/SharedComponents";
 
 export default function LoginPage() {
     const { setLoggedIn } = useData();
+    const navigate = useNavigate();
     const [email, setEmail] = useState("admin@businesscenter.com");
     const [pass, setPass] = useState("demo123");
 
@@ -24,7 +26,7 @@ export default function LoginPage() {
                 <div style={{ marginBottom: 16, textAlign: "right" }}>
                     <span style={{ fontSize: 13, color: C.primary, cursor: "pointer" }}>Şifremi unuttum</span>
                 </div>
-                <button onClick={() => setLoggedIn(true)} style={{ width: "100%", background: C.primary, color: "#fff", border: "none", borderRadius: 10, padding: "12px", fontWeight: 700, fontSize: 15, cursor: "pointer", fontFamily: "inherit" }}>
+                <button onClick={() => { setLoggedIn(true); navigate("/"); }} style={{ width: "100%", background: C.primary, color: "#fff", border: "none", borderRadius: 10, padding: "12px", fontWeight: 700, fontSize: 15, cursor: "pointer", fontFamily: "inherit" }}>
                     Giriş Yap
                 </button>
                 <p style={{ textAlign: "center", fontSize: 12, color: C.textMuted, marginTop: 16 }}>

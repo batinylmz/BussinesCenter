@@ -12,12 +12,11 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("✅ MongoDB Bağlantısı Başarılı!"))
     .catch((err) => console.log("❌ MongoDB Bağlantı Hatası:", err));
 
-const gelirRoutes = require("./routes/gelirRoutes");
-// Route Bağlantıları
 app.use("/api/gelirler", require("./routes/gelirRoutes"));
 app.use("/api/giderler", require("./routes/giderRoutes"));
 app.use("/api/projeler", require("./routes/projeRoutes"));
 app.use("/api/departmanlar", require("./routes/departmanRoutes"));
+app.use("/api/kategoriler", require("./routes/kategoriRoutes"));
 
 
 // Test Rotası (Ana sayfaya girilirse bu cevabı ver)
