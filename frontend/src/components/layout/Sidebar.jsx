@@ -16,7 +16,7 @@ const NAV = [
 ];
 
 export default function Sidebar() {
-    const { setLoggedIn } = useData();
+    const { logout } = useData();
     const { pathname } = useLocation();
 
     return (
@@ -45,7 +45,7 @@ export default function Sidebar() {
                 })}
             </nav>
             <div style={{ padding: "12px 10px", borderTop: `1px solid ${C.border}` }}>
-                <button onClick={() => setLoggedIn(false)} style={{
+                <button onClick={logout} style={{
                     width: "100%", padding: "9px 12px", borderRadius: 10, border: "none", cursor: "pointer",
                     background: "transparent", color: C.textMuted, fontSize: 13, fontWeight: 600,
                     display: "flex", alignItems: "center", gap: 8, fontFamily: "inherit"

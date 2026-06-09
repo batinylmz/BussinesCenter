@@ -14,7 +14,20 @@ const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
     const [data, setData] = useState(EMPTY_DATA);
-    const [loggedIn, setLoggedIn] = useState(false);
+    const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("token"));
+    const [token, setToken] = useState(localStorage.getItem("token"));
+
+    const login = (jwt) => {
+        localStorage.setItem("token", jwt);
+        setToken(jwt);
+        setLoggedIn(true);
+    };
+
+    const logout = () => {
+        localStorage.removeItem("token");
+        setToken(null);
+        setLoggedIn(false);
+    };
 
     // SAYFA AÇILDIĞINDA TÜM VERİLERİ MONGODB'DEN ÇEK
     useEffect(() => {
@@ -53,7 +66,7 @@ export const DataProvider = ({ children }) => {
     }, []);
 
     return (
-        <DataContext.Provider value={{ data, setData, loggedIn, setLoggedIn }}>
+        <DataContext.Provider value={{ data, setData, loggedIn, token, login, logout }}>
             {children}
         </DataContext.Provider>
     );
