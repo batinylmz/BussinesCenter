@@ -13,6 +13,7 @@ mongoose.connect(process.env.MONGO_URI)
     .catch((err) => console.log("❌ MongoDB Bağlantı Hatası:", err));
 
 app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.use("/api/gelirler", require("./routes/gelirRoutes"));
 app.use("/api/giderler", require("./routes/giderRoutes"));
 app.use("/api/projeler", require("./routes/projeRoutes"));
