@@ -1,18 +1,30 @@
 import { Link, useLocation } from "react-router-dom";
 import { useData } from "../../context/DataContext";
 import { C } from "../../utils/constants";
+import {
+    AiOutlineHome,
+    AiOutlineDollarCircle,
+    AiOutlineCreditCard,
+    AiOutlineLineChart,
+    AiOutlinePieChart,
+    AiOutlineFileText,
+    AiOutlineProject,
+    AiOutlineBank,
+    AiOutlineAppstore,
+    AiOutlineRobot,
+} from "react-icons/ai";
 
 const NAV = [
-    { path: "/", label: "Dashboard", icon: "▦" },
-    { path: "/gelirler", label: "Gelirler", icon: "↗" },
-    { path: "/giderler", label: "Giderler", icon: "↙" },
-    { path: "/yatirimlar", label: "Yatırımlar", icon: "◈" },
-    { path: "/butce", label: "Bütçe", icon: "◎" },
-    { path: "/raporlar", label: "Raporlar", icon: "▤" },
-    { path: "/projeler", label: "Projeler", icon: "⬡" },
-    { path: "/departmanlar", label: "Departmanlar", icon: "⊞" },
-    { path: "/kategoriler", label: "Kategoriler", icon: "◈" },
-    { path: "/ai", label: "AI Asistan", icon: "✦" },
+    { path: "/", label: "Dashboard", Icon: AiOutlineHome },
+    { path: "/gelirler", label: "Gelirler", Icon: AiOutlineDollarCircle },
+    { path: "/giderler", label: "Giderler", Icon: AiOutlineCreditCard },
+    { path: "/yatirimlar", label: "Yatırımlar", Icon: AiOutlineLineChart },
+    { path: "/butce", label: "Bütçe", Icon: AiOutlinePieChart },
+    { path: "/raporlar", label: "Raporlar", Icon: AiOutlineFileText },
+    { path: "/projeler", label: "Projeler", Icon: AiOutlineProject },
+    { path: "/departmanlar", label: "Departmanlar", Icon: AiOutlineBank },
+    { path: "/kategoriler", label: "Kategoriler", Icon: AiOutlineAppstore },
+    { path: "/ai", label: "AI Asistan", Icon: AiOutlineRobot },
 ];
 
 export default function Sidebar() {
@@ -38,7 +50,7 @@ export default function Sidebar() {
                             color: active ? C.primary : C.textMuted,
                             fontSize: 14, fontWeight: active ? 700 : 500, transition: "all 0.12s",
                         }}>
-                            <span style={{ fontSize: 15, opacity: 0.8 }}>{item.icon}</span>
+                            <item.Icon style={{ fontSize: 17, opacity: 0.85, flexShrink: 0 }} />
                             {item.label}
                         </Link>
                     );
