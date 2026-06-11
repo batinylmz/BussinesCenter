@@ -6,6 +6,7 @@ const Gelir = require("./models/Gelir");
 const Gider = require("./models/Gider");
 const Departman = require("./models/Departman");
 const Proje = require("./models/Proje");
+const Kategori = require("./models/Kategori");
 
 // MongoDB'ye basılacak test verilerimiz
 const tohumVerileriBas = async () => {
@@ -18,6 +19,7 @@ const tohumVerileriBas = async () => {
         await Gider.deleteMany();
         await Departman.deleteMany();
         await Proje.deleteMany();
+        await Kategori.deleteMany();
 
         // 2. Yeni verileri ekleyelim
         await Gelir.insertMany([
@@ -36,6 +38,15 @@ const tohumVerileriBas = async () => {
             { ad: "AR-GE", yonetici: "Dr. Mehmet Yılmaz", calisan: 12, butce: 35000, harcanan: 9200 },
             { ad: "Pazarlama", yonetici: "Ayşe Kaya", calisan: 8, butce: 20000, harcanan: 9900 },
             { ad: "İnsan Kaynakları", yonetici: "Fatma Demir", calisan: 5, butce: 55000, harcanan: 44800 }
+        ]);
+
+        await Kategori.insertMany([
+            { ad: "E-Ticaret", tur: "gelir", renk: "#2563eb" },
+            { ad: "Danışmanlık", tur: "gelir", renk: "#16a34a" },
+            { ad: "Proje", tur: "gelir", renk: "#0d9488" },
+            { ad: "Personel", tur: "gider", renk: "#dc2626" },
+            { ad: "Yazılım", tur: "gider", renk: "#7c3aed" },
+            { ad: "Kira", tur: "gider", renk: "#f59e0b" }
         ]);
 
         await Proje.insertMany([
