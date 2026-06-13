@@ -55,6 +55,7 @@ export default function GiderlerPage() {
         }
     };
 
+    const bugun = new Date().toISOString().split("T")[0];
     return (
         <div>
             <PageHeader title="Giderler" action={<Btn onClick={() => open()}>+ Gider Ekle</Btn>} />
@@ -95,12 +96,33 @@ export default function GiderlerPage() {
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                         <Field label="Kategori">
                             <select style={inputSt} value={form.kategori} onChange={e => setForm(f => ({ ...f, kategori: e.target.value }))}>
-                                {giderKats.map(k => <option key={k.id}>{k.ad}</option>)}
+                                <option value="" disabled>Kategori Seçiniz...</option>
+
+                                {giderKats.length > 0 ? (
+                                    giderKats.map(k => <option key={k.id} value={k.ad}>{k.ad}</option>)
+                                ) : (
+                                    <>
+                                        <option value="Maaş">Maaş</option>
+                                        <option value="Kira">Kira</option>
+                                        <option value="Fatura">Fatura</option>
+                                        <option value="Pazarlama">Pazarlama</option>
+                                        <option value="Ofis Giderleri">Ofis Giderleri</option>
+                                        <option value="Diğer">Diğer</option>
+                                    </>
+                                )}
                             </select>
                         </Field>
                         <Field label="Departman"><input style={inputSt} value={form.departman} onChange={e => setForm(f => ({ ...f, departman: e.target.value }))} /></Field>
                     </div>
-                    <Field label="Tarih"><input style={inputSt} type="date" value={form.tarih} onChange={e => setForm(f => ({ ...f, tarih: e.target.value }))} /></Field>
+                    <Field label="Tarih">
+                        <input
+                            style={inputSt}
+                            type="date"
+                            value={form.tarih}
+                            onChange={e => setForm(f => ({ ...f, tarih: e.target.value }))}
+                            max={bugun} /* Gelecek tarihleri kilitleyen kısım */
+                        />
+                    </Field>
                     <Field label="Açıklama"><textarea style={{ ...inputSt, resize: "vertical", minHeight: 72 }} value={form.aciklama} onChange={e => setForm(f => ({ ...f, aciklama: e.target.value }))} /></Field>
                     <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
                         <BtnOutline onClick={() => setModal(false)}>İptal</BtnOutline>
