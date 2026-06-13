@@ -71,7 +71,10 @@ ${kategoriler.length > 0 ? kategoriler.map(k => `- ${k.ad}`).join(", ") : "Kateg
     res.flushHeaders();
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.0-flash",
+            systemInstruction: { role: "system", parts: [{ text: systemPrompt }] }
+        });
 
         // Gemini chat geçmişi: son mesaj hariç history, son mesaj ayrı gönderilir
         // Gemini her zaman 'user' rolüyle başlamalı — baştaki assistant mesajlarını at
@@ -86,10 +89,7 @@ ${kategoriler.length > 0 ? kategoriler.map(k => `- ${k.ad}`).join(", ") : "Kateg
         }));
         const lastMessage = filtered[filtered.length - 1].content;
 
-        const chat = model.startChat({
-            history,
-            systemInstruction: systemPrompt,
-        });
+        const chat = model.startChat({ history });
 
         const result = await chat.sendMessageStream(lastMessage);
 
