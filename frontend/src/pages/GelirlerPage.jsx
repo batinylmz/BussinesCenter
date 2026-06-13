@@ -7,21 +7,30 @@ export default function GelirlerPage() {
     const { data, setData } = useData();
     const [modal, setModal] = useState(false);
     const [form, setForm] = useState({ baslik: "", tutar: "", kategori: "", tarih: "", departman: "", aciklama: "" });
+    const [yeniKategori, setYeniKategori] = useState("");
     const [editing, setEditing] = useState(null);
 
     const gelirKats = data.kategoriler.filter(k => k.tip === "gelir");
+    const benzersizKategoriler = [...new Set(gelirKats.map(k => k.ad))];
     const toplam = data.gelirler.reduce((s, x) => s + x.tutar, 0);
 
     const open = (row = null) => {
         setEditing(row);
-        setForm(row ? { ...row, tutar: String(row.tutar) } : { baslik: "", tutar: "", kategori: gelirKats[0]?.ad || "", tarih: new Date().toISOString().slice(0, 10), departman: "", aciklama: "" });
+        setForm(row ? { ...row, tutar: String(row.tutar) } : { baslik: "", tutar: "", kategori: "", tarih: new Date().toISOString().slice(0, 10), departman: "", aciklama: "" });
+        setYeniKategori("");
         setModal(true);
     };
 
-// GERÇEK BACKEND KAYDI (KORUMALI VERSİYON)
     const save = async () => {
         if (!form.baslik || !form.tutar) return;
-        const veri = { ...form, tutar: Number(form.tutar) };
+
+        let finalKategori = form.kategori;
+        if (form.kategori === "Diğer") {
+            if (!yeniKategori.trim()) { alert("Lütfen kategori adı girin!"); return; }
+            finalKategori = yeniKategori.trim();
+        }
+
+        const veri = { ...form, tutar: Number(form.tutar), kategori: finalKategori };
 
         try {
             if (editing) {
@@ -31,13 +40,7 @@ export default function GelirlerPage() {
                     body: JSON.stringify(veri)
                 });
                 const guncel = await res.json();
-
-                // BACKEND İTİRAZ ETTİ Mİ KONTROLÜ
-                if (!res.ok) {
-                    alert("Güncelleme Başarısız: " + (guncel.mesaj || guncel.hata || "Bilinmeyen Hata"));
-                    return;
-                }
-
+                if (!res.ok) { alert("Hata: " + (guncel.mesaj || "Bilinmeyen hata")); return; }
                 guncel.id = guncel._id;
                 setData(d => ({ ...d, gelirler: d.gelirler.map(x => x.id === editing.id ? guncel : x) }));
             } else {
@@ -47,31 +50,20 @@ export default function GelirlerPage() {
                     body: JSON.stringify(veri)
                 });
                 const yeni = await res.json();
-
-                // BACKEND İTİRAZ ETTİ Mİ KONTROLÜ
-                if (!res.ok) {
-                    alert("Kayıt Başarısız: " + (yeni.mesaj || yeni.hata || "Bilinmeyen Hata"));
-                    return;
-                }
-
+                if (!res.ok) { alert("Hata: " + (yeni.mesaj || "Bilinmeyen hata")); return; }
                 yeni.id = yeni._id;
                 setData(d => ({ ...d, gelirler: [...d.gelirler, yeni] }));
             }
             setModal(false);
-        } catch (error) {
-            console.error("Gelir kaydedilirken hata:", error);
-        }
+        } catch (error) { console.error("Gelir kaydedilirken hata:", error); }
     };
-    // GERÇEK BACKEND SİLME (DELETE)
+
     const del = async (id) => {
         try {
             await fetch(`http://localhost:5001/api/gelirler/${id}`, { method: "DELETE" });
             setData(d => ({ ...d, gelirler: d.gelirler.filter(x => x.id !== id) }));
-        } catch (error) {
-            console.error("Gelir silinirken hata:", error);
-        }
+        } catch (error) { console.error("Gelir silinirken hata:", error); }
     };
-
 
     const bugun = new Date().toISOString().split("T")[0];
     return (
@@ -115,31 +107,16 @@ export default function GelirlerPage() {
                         <Field label="Kategori">
                             <select style={inputSt} value={form.kategori} onChange={e => setForm(f => ({ ...f, kategori: e.target.value }))}>
                                 <option value="" disabled>Kategori Seçiniz...</option>
-
-                                {gelirKats.length > 0 ? (
-                                    gelirKats.map(k => <option key={k.id} value={k.ad}>{k.ad}</option>)
-                                ) : (
-                                    <>
-                                        <option value="Satış">Satış</option>
-                                        <option value="E-Ticaret">E-Ticaret</option>
-                                        <option value="Danışmanlık">Danışmanlık</option>
-                                        <option value="Proje Geliri">Proje Geliri</option>
-                                        <option value="Diğer">Diğer</option>
-                                    </>
-                                )}
+                                {benzersizKategoriler.map(katAd => <option key={katAd} value={katAd}>{katAd}</option>)}
+                                <option value="Diğer">+ Diğer (Yeni Ekle...)</option>
                             </select>
+                            {form.kategori === "Diğer" && (
+                                <input style={{ ...inputSt, marginTop: 8 }} placeholder="Kategori adı..." value={yeniKategori} onChange={e => setYeniKategori(e.target.value)} />
+                            )}
                         </Field>
                         <Field label="Departman"><input style={inputSt} value={form.departman} onChange={e => setForm(f => ({ ...f, departman: e.target.value }))} /></Field>
                     </div>
-                    <Field label="Tarih">
-                        <input
-                            style={inputSt}
-                            type="date"
-                            value={form.tarih}
-                            onChange={e => setForm(f => ({ ...f, tarih: e.target.value }))}
-                            max={bugun}
-                        />
-                    </Field>
+                    <Field label="Tarih"><input style={inputSt} type="date" value={form.tarih} onChange={e => setForm(f => ({ ...f, tarih: e.target.value }))} max={bugun} /></Field>
                     <Field label="Açıklama"><textarea style={{ ...inputSt, resize: "vertical", minHeight: 72 }} value={form.aciklama} onChange={e => setForm(f => ({ ...f, aciklama: e.target.value }))} /></Field>
                     <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
                         <BtnOutline onClick={() => setModal(false)}>İptal</BtnOutline>
@@ -150,4 +127,3 @@ export default function GelirlerPage() {
         </div>
     );
 }
-
