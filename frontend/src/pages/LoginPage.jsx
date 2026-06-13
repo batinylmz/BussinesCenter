@@ -1,12 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useData } from "../context/DataContext";
 import { C, inputSt } from "../utils/constants";
 import { Field } from "../components/SharedComponents";
 
 export default function LoginPage() {
-    const { setLoggedIn } = useData();
+    const { login } = useData();
+    const navigate = useNavigate();
     const [email, setEmail] = useState("admin@businesscenter.com");
     const [pass, setPass] = useState("demo123");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     return (
         <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Segoe UI',system-ui,sans-serif" }}>
@@ -24,11 +28,54 @@ export default function LoginPage() {
                 <div style={{ marginBottom: 16, textAlign: "right" }}>
                     <span style={{ fontSize: 13, color: C.primary, cursor: "pointer" }}>Şifremi unuttum</span>
                 </div>
-                <button onClick={() => setLoggedIn(true)} style={{ width: "100%", background: C.primary, color: "#fff", border: "none", borderRadius: 10, padding: "12px", fontWeight: 700, fontSize: 15, cursor: "pointer", fontFamily: "inherit" }}>
-                    Giriş Yap
+                {error && <div style={{ color: C.danger, fontSize: 13, marginBottom: 12, textAlign: "center" }}>{error}</div>}
+                <button onClick={async () => {
+                    setError(""); setLoading(true);
+                    try {
+                        const res = await fetch("http://localhost:5001/api/auth/login", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ email, password: pass })
+                        });
+                        const d = await res.json();
+                        if (!res.ok) { setError(d.mesaj || "Giriş başarısız"); return; }
+                        login(d.token);
+                        navigate("/");
+                    } catch { setError("Sunucuya bağlanılamadı"); }
+                    finally { setLoading(false); }
+                }} style={{ width: "100%", background: C.primary, color: "#fff", border: "none", borderRadius: 10, padding: "12px", fontWeight: 700, fontSize: 15, cursor: "pointer", fontFamily: "inherit" }}>
+                    {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
                 </button>
                 <p style={{ textAlign: "center", fontSize: 12, color: C.textMuted, marginTop: 16 }}>
-                    Hesabın yok mu? <span style={{ color: C.primary, cursor: "pointer", fontWeight: 600 }}>Kayıt Ol</span>
+                    Hesabın yok mu?
+                    <span
+                        style={{ color: C.primary, cursor: "pointer", fontWeight: 600 }}
+                        onClick={async () => {
+                            try {
+                                const res = await fetch("http://localhost:5001/api/auth/register", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        email: "admin@businesscenter.com",
+                                        password: "demo123",
+                                        role: "admin",
+                                        name: "Admin Kullanıcı" // Belki isim zorunludur diye bunu da ekledik
+                                    })
+                                });
+                                const d = await res.json(); // Backend'den gelen cevabı okuyoruz
+
+                                if(res.ok) {
+                                    alert("✅ Kullanıcı başarıyla oluşturuldu! Şimdi Giriş Yap butonuna basabilirsin.");
+                                } else {
+                                    alert("❌ Backend'in itirazı var: " + (d.hata || d.mesaj));
+                                }
+                            } catch (err) {
+                                alert("Sunucuya ulaşılamadı.");
+                            }
+                        }}
+                    >
+    Kayıt Ol
+</span>
                 </p>
             </div>
         </div>

@@ -12,7 +12,7 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("✅ MongoDB Bağlantısı Başarılı!"))
     .catch((err) => console.log("❌ MongoDB Bağlantı Hatası:", err));
 
-// Route Bağlantıları
+//routs bağıntıları
 app.use("/api/gelirler", require("./routes/gelirRoutes"));
 app.use("/api/giderler", require("./routes/giderRoutes"));
 app.use("/api/projeler", require("./routes/projeRoutes"));
