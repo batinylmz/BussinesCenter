@@ -10,10 +10,18 @@ export default function YatirimlarPage() {
     const [editing, setEditing] = useState(null);
     const TIPLER = ["Hisse", "Fon", "Tahvil", "Emtia", "Kripto", "ETF"];
 
+
     const toplamPortfoy = data.yatirimlar.reduce((s, x) => s + x.deger, 0);
     const toplamKarZarar = data.yatirimlar.reduce((s, x) => s + x.karZarar, 0);
-    const nakitRezev = 215000; // İleride bunu da dinamik yapabilirsin
-    const bugunDegisim = 3240;  // İleride bunu da dinamik yapabilirsin
+    const bugunDegisim = 3240; // İstersen ileride bunu da dinamik yapabiliriz
+
+    // DİNAMİK NAKİT REZERVİ HESAPLAMASI
+    const toplamGelir = data.gelirler.reduce((s, x) => s + x.tutar, 0);
+    const toplamGider = data.giderler.reduce((s, x) => s + x.tutar, 0);
+    const yatirimaHarcanan = data.yatirimlar.reduce((s, x) => s + x.maliyet, 0);
+
+    // Şirketin kasasındaki boşta duran (yatırıma hazır) gerçek para
+    const nakitRezev = (toplamGelir - toplamGider) - yatirimaHarcanan;
 
     const open = (row = null) => {
         setEditing(row);
