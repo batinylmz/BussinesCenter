@@ -1,13 +1,14 @@
 const mongoose = require("mongoose");
 
 const butceSchema = new mongoose.Schema({
-    baslik:    { type: String, required: true },
-    kategori:  { type: String, required: true },
-    departman: { type: String },
-    limit:     { type: Number, required: true },
-    harcanan:  { type: Number, default: 0 },
-    donem:     { type: String },  // örn: "2026-06"
-    aciklama:  { type: String }
+    departman: { type: String, required: true },
+    yillik:    { type: Number, required: true },
+    q1:        { type: Number, default: 0 },
+    q1g:       { type: Number, default: 0 },
+    q2:        { type: Number, default: 0 },
+    q2g:       { type: Number, default: 0 },
+    q3plan:    { type: Number, default: 0 },
+    q4plan:    { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model("Butce", butceSchema);
