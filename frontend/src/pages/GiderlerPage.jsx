@@ -7,20 +7,41 @@ export default function GiderlerPage() {
     const { data, setData } = useData();
     const [modal, setModal] = useState(false);
     const [form, setForm] = useState({ baslik: "", tutar: "", kategori: "", tarih: "", departman: "", aciklama: "" });
+    const [yeniKategori, setYeniKategori] = useState("");
     const [editing, setEditing] = useState(null);
 
     const giderKats = data.kategoriler.filter(k => k.tip === "gider");
+
+    // 1. ÇÖZÜM: Çift eklenmiş kategorileri menüde tek göstermek için filtreliyoruz (Benzersiz Liste)
+    const benzersizKategoriler = [...new Set(giderKats.map(k => k.ad))];
+
     const toplam = data.giderler.reduce((s, x) => s + x.tutar, 0);
 
     const open = (row = null) => {
         setEditing(row);
-        setForm(row ? { ...row, tutar: String(row.tutar) } : { baslik: "", tutar: "", kategori: giderKats[0]?.ad || "", tarih: new Date().toISOString().slice(0, 10), departman: "", aciklama: "" });
+        setForm(row ? { ...row, tutar: String(row.tutar) } : { baslik: "", tutar: "", kategori: "", tarih: new Date().toISOString().slice(0, 10), departman: "", aciklama: "" });
+        setYeniKategori("");
         setModal(true);
     };
 
     const save = async () => {
-        if (!form.baslik || !form.tutar) return;
-        const veri = { ...form, tutar: Number(form.tutar) };
+        if (!form.baslik || !form.tutar) {
+            alert("Lütfen başlık ve tutar giriniz.");
+            return;
+        }
+
+        let finalKategori = form.kategori;
+
+        // 2. ÇÖZÜM: Diğer seçildiğinde ANA LİSTEYE KAYDETME, sadece bu işleme isim olarak ata
+        if (form.kategori === "Diğer") {
+            if (!yeniKategori.trim()) {
+                alert("Lütfen diğer kategorisi için bir isim giriniz!");
+                return;
+            }
+            finalKategori = yeniKategori.trim();
+        }
+
+        const veri = { ...form, tutar: Number(form.tutar), kategori: finalKategori };
 
         try {
             if (editing) {
@@ -30,6 +51,7 @@ export default function GiderlerPage() {
                     body: JSON.stringify(veri)
                 });
                 const guncel = await res.json();
+                if (!res.ok) { alert("Hata: " + (guncel.mesaj || "Bilinmeyen hata")); return; }
                 guncel.id = guncel._id;
                 setData(d => ({ ...d, giderler: d.giderler.map(x => x.id === editing.id ? guncel : x) }));
             } else {
@@ -39,11 +61,14 @@ export default function GiderlerPage() {
                     body: JSON.stringify(veri)
                 });
                 const yeni = await res.json();
+                if (!res.ok) { alert("Hata: " + (yeni.mesaj || "Bilinmeyen hata")); return; }
                 yeni.id = yeni._id;
                 setData(d => ({ ...d, giderler: [...d.giderler, yeni] }));
             }
             setModal(false);
-        } catch (error) { console.error("Gider kaydedilirken hata:", error); }
+        } catch (error) {
+            console.error("Gider kaydedilirken hata:", error);
+        }
     };
 
     const del = async (id) => {
@@ -56,6 +81,7 @@ export default function GiderlerPage() {
     };
 
     const bugun = new Date().toISOString().split("T")[0];
+
     return (
         <div>
             <PageHeader title="Giderler" action={<Btn onClick={() => open()}>+ Gider Ekle</Btn>} />
@@ -94,24 +120,28 @@ export default function GiderlerPage() {
                     <Field label="Başlık" req><input style={inputSt} value={form.baslik} onChange={e => setForm(f => ({ ...f, baslik: e.target.value }))} /></Field>
                     <Field label="Tutar (₺)" req><input style={inputSt} type="number" value={form.tutar} onChange={e => setForm(f => ({ ...f, tutar: e.target.value }))} /></Field>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+
                         <Field label="Kategori">
                             <select style={inputSt} value={form.kategori} onChange={e => setForm(f => ({ ...f, kategori: e.target.value }))}>
                                 <option value="" disabled>Kategori Seçiniz...</option>
 
-                                {giderKats.length > 0 ? (
-                                    giderKats.map(k => <option key={k.id} value={k.ad}>{k.ad}</option>)
-                                ) : (
-                                    <>
-                                        <option value="Maaş">Maaş</option>
-                                        <option value="Kira">Kira</option>
-                                        <option value="Fatura">Fatura</option>
-                                        <option value="Pazarlama">Pazarlama</option>
-                                        <option value="Ofis Giderleri">Ofis Giderleri</option>
-                                        <option value="Diğer">Diğer</option>
-                                    </>
-                                )}
+                                {/* Çift kayıtları filtrelediğimiz tertemiz listeyi ekrana basıyoruz */}
+                                {benzersizKategoriler.map(katAd => <option key={katAd} value={katAd}>{katAd}</option>)}
+
+                                <option value="Diğer">+ Diğer (Yeni Ekle...)</option>
                             </select>
+
+                            {/* Eğer Diğer seçildiyse altta kutu açılır ama ana listeye kaydedilmez */}
+                            {form.kategori === "Diğer" && (
+                                <input
+                                    style={{ ...inputSt, marginTop: 8 }}
+                                    placeholder="Kategori adı girin..."
+                                    value={yeniKategori}
+                                    onChange={e => setYeniKategori(e.target.value)}
+                                />
+                            )}
                         </Field>
+
                         <Field label="Departman"><input style={inputSt} value={form.departman} onChange={e => setForm(f => ({ ...f, departman: e.target.value }))} /></Field>
                     </div>
                     <Field label="Tarih">
@@ -120,7 +150,7 @@ export default function GiderlerPage() {
                             type="date"
                             value={form.tarih}
                             onChange={e => setForm(f => ({ ...f, tarih: e.target.value }))}
-                            max={bugun} /* Gelecek tarihleri kilitleyen kısım */
+                            max={bugun}
                         />
                     </Field>
                     <Field label="Açıklama"><textarea style={{ ...inputSt, resize: "vertical", minHeight: 72 }} value={form.aciklama} onChange={e => setForm(f => ({ ...f, aciklama: e.target.value }))} /></Field>
