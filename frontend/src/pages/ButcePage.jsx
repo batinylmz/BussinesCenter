@@ -15,14 +15,74 @@ export default function ButcePage() {
             : { departman: "", yillik: "", q1: "", q1g: "0", q2: "", q2g: "0", q3plan: "", q4plan: "" });
         setModal(true);
     };
-    const save = () => {
+
+    // GERÇEK BACKEND KAYDI (KORUMALI VERSİYON)
+    const save = async () => {
         if (!form.departman) return;
         const n = s => Number(s) || 0;
-        const item = { ...form, yillik: n(form.yillik), q1: n(form.q1), q1g: n(form.q1g), q2: n(form.q2), q2g: n(form.q2g), q3plan: n(form.q3plan), q4plan: n(form.q4plan), id: editing?.id || Date.now() };
-        setData(d => ({ ...d, butce: editing ? d.butce.map(x => x.id === editing.id ? item : x) : [...d.butce, item] }));
-        setModal(false);
+
+        const veri = {
+            departman: form.departman,
+            yillik: n(form.yillik),
+            q1: n(form.q1),
+            q1g: n(form.q1g),
+            q2: n(form.q2),
+            q2g: n(form.q2g),
+            q3plan: n(form.q3plan),
+            q4plan: n(form.q4plan)
+        };
+
+        try {
+            if (editing) {
+                const res = await fetch(`http://localhost:5001/api/butce/${editing.id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(veri)
+                });
+                const guncel = await res.json();
+
+                // BACKEND İTİRAZ ETTİ Mİ KONTROLÜ
+                if (!res.ok) {
+                    alert("Güncelleme Başarısız: " + (guncel.mesaj || guncel.hata || "Bilinmeyen Hata"));
+                    return; // Hata varsa aşağı inme, işlemi iptal et
+                }
+
+                guncel.id = guncel._id;
+                setData(d => ({ ...d, butce: d.butce.map(x => x.id === editing.id ? guncel : x) }));
+            } else {
+                const res = await fetch("http://localhost:5001/api/butce", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(veri)
+                });
+                const yeni = await res.json();
+
+                // BACKEND İTİRAZ ETTİ Mİ KONTROLÜ
+                if (!res.ok) {
+                    alert("Kayıt Başarısız: " + (yeni.mesaj || yeni.hata || "Bilinmeyen Hata"));
+                    return; // Hata varsa aşağı inme, işlemi iptal et (Sayfa çökmez!)
+                }
+
+                yeni.id = yeni._id;
+                setData(d => ({ ...d, butce: [...d.butce, yeni] }));
+            }
+            setModal(false);
+        } catch (error) {
+            console.error("Bütçe kaydedilirken hata:", error);
+            alert("Sunucuya ulaşılamadı veya bağlantı koptu.");
+        }
+    };
+    // GERÇEK BACKEND SİLME (DELETE)
+    const del = async (id) => {
+        try {
+            await fetch(`http://localhost:5001/api/butce/${id}`, { method: "DELETE" });
+            setData(d => ({ ...d, butce: d.butce.filter(x => x.id !== id) }));
+        } catch (error) {
+            console.error("Bütçe silinirken hata:", error);
+        }
     };
 
+    // Grafikler için veriyi hazırlama
     const chartData = data.butce.map(b => ({ departman: b.departman, hedef: b.yillik, gercek: b.q1g + b.q2g }));
 
     return (
@@ -61,7 +121,9 @@ export default function ButcePage() {
                                     <td style={{ padding: "12px 16px", color: C.textMuted }}>₺{b.q4plan.toLocaleString("tr-TR")}</td>
                                     <td style={{ padding: "12px 16px", fontWeight: 700 }}>₺{toplamHarcama.toLocaleString("tr-TR")}</td>
                                     <td style={{ padding: "12px 16px", fontWeight: 700, color: kalan >= 0 ? C.success : C.danger }}>₺{Math.abs(kalan).toLocaleString("tr-TR")}</td>
-                                    <td style={{ padding: "12px 16px" }}><ActionBtns onEdit={() => open(b)} onDelete={() => setData(d => ({ ...d, butce: d.butce.filter(x => x.id !== b.id) }))} /></td>
+
+                                    {/* SİLME BUTONU GERÇEK DEL FONKSİYONUNA BAĞLANDI */}
+                                    <td style={{ padding: "12px 16px" }}><ActionBtns onEdit={() => open(b)} onDelete={() => del(b.id)} /></td>
                                 </tr>
                             );
                         })}
