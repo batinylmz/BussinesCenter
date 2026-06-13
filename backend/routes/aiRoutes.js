@@ -74,11 +74,17 @@ ${kategoriler.length > 0 ? kategoriler.map(k => `- ${k.ad}`).join(", ") : "Kateg
         const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
         // Gemini chat geçmişi: son mesaj hariç history, son mesaj ayrı gönderilir
-        const history = messages.slice(0, -1).map(m => ({
+        // Gemini her zaman 'user' rolüyle başlamalı — baştaki assistant mesajlarını at
+        const filtered = [...messages];
+        while (filtered.length > 0 && (filtered[0].role === "assistant" || filtered[0].role === "model")) {
+            filtered.shift();
+        }
+
+        const history = filtered.slice(0, -1).map(m => ({
             role: m.role === "assistant" ? "model" : "user",
             parts: [{ text: m.content }]
         }));
-        const lastMessage = messages[messages.length - 1].content;
+        const lastMessage = filtered[filtered.length - 1].content;
 
         const chat = model.startChat({
             history,
