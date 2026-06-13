@@ -18,7 +18,7 @@ export default function GelirlerPage() {
         setModal(true);
     };
 
-    // GERÇEK BACKEND KAYDI (POST)
+// GERÇEK BACKEND KAYDI (KORUMALI VERSİYON)
     const save = async () => {
         if (!form.baslik || !form.tutar) return;
         const veri = { ...form, tutar: Number(form.tutar) };
@@ -31,7 +31,14 @@ export default function GelirlerPage() {
                     body: JSON.stringify(veri)
                 });
                 const guncel = await res.json();
-                guncel.id = guncel._id; // MongoDB uyumu
+
+                // BACKEND İTİRAZ ETTİ Mİ KONTROLÜ
+                if (!res.ok) {
+                    alert("Güncelleme Başarısız: " + (guncel.mesaj || guncel.hata || "Bilinmeyen Hata"));
+                    return;
+                }
+
+                guncel.id = guncel._id;
                 setData(d => ({ ...d, gelirler: d.gelirler.map(x => x.id === editing.id ? guncel : x) }));
             } else {
                 const res = await fetch("http://localhost:5001/api/gelirler", {
@@ -40,13 +47,21 @@ export default function GelirlerPage() {
                     body: JSON.stringify(veri)
                 });
                 const yeni = await res.json();
+
+                // BACKEND İTİRAZ ETTİ Mİ KONTROLÜ
+                if (!res.ok) {
+                    alert("Kayıt Başarısız: " + (yeni.mesaj || yeni.hata || "Bilinmeyen Hata"));
+                    return;
+                }
+
                 yeni.id = yeni._id;
                 setData(d => ({ ...d, gelirler: [...d.gelirler, yeni] }));
             }
             setModal(false);
-        } catch (error) { console.error("Gelir kaydedilirken hata:", error); }
+        } catch (error) {
+            console.error("Gelir kaydedilirken hata:", error);
+        }
     };
-
     // GERÇEK BACKEND SİLME (DELETE)
     const del = async (id) => {
         try {
@@ -135,3 +150,4 @@ export default function GelirlerPage() {
         </div>
     );
 }
+
