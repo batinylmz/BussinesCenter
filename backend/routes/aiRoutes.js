@@ -72,7 +72,7 @@ ${kategoriler.length > 0 ? kategoriler.map(k => `- ${k.ad}`).join(", ") : "Kateg
 
     try {
         const model = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash",
+            model: "gemini-1.5-flash",
             systemInstruction: { role: "system", parts: [{ text: systemPrompt }] }
         });
 
