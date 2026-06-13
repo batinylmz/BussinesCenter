@@ -5,7 +5,7 @@ const EMPTY_DATA = {
     giderler: [],
     departmanlar: [],
     projeler: [],
-    yatirimlar: [],
+    yatirimlar: [], // Yatırımlar listesi
     butce: [],
     kategoriler: []
 };
@@ -33,13 +33,15 @@ export const DataProvider = ({ children }) => {
     useEffect(() => {
         const tumVerileriGetir = async () => {
             try {
-                // 4 farklı rotamıza aynı anda istek atıyoruz (Hız için Promise.all kullanıyoruz)
-                const [gelirRes, giderRes, depRes, projeRes, katRes] = await Promise.all([
+                // yatirimlar rotasını da Promise.all içine ekledik
+                const [gelirRes, giderRes, depRes, projeRes, katRes, butceRes, yatirimRes] = await Promise.all([
                     fetch("http://localhost:5001/api/gelirler"),
                     fetch("http://localhost:5001/api/giderler"),
                     fetch("http://localhost:5001/api/departmanlar"),
                     fetch("http://localhost:5001/api/projeler"),
-                    fetch("http://localhost:5001/api/kategoriler")
+                    fetch("http://localhost:5001/api/kategoriler"),
+                    fetch("http://localhost:5001/api/butce"),
+                    fetch("http://localhost:5001/api/yatirimlar") // YENİ EKLENDİ
                 ]);
 
                 const gelirlerDB = await gelirRes.json();
@@ -47,6 +49,8 @@ export const DataProvider = ({ children }) => {
                 const departmanlarDB = await depRes.json();
                 const projelerDB = await projeRes.json();
                 const kategorilerDB = await katRes.json();
+                const butceDB = await butceRes.json();
+                const yatirimlarDB = await yatirimRes.json(); // YENİ EKLENDİ
 
                 const norm = arr => arr.map(x => ({ ...x, id: x._id }));
                 setData(prev => ({
@@ -55,7 +59,9 @@ export const DataProvider = ({ children }) => {
                     giderler: norm(giderlerDB),
                     departmanlar: norm(departmanlarDB),
                     projeler: norm(projelerDB),
-                    kategoriler: norm(kategorilerDB)
+                    kategoriler: norm(kategorilerDB),
+                    butce: norm(butceDB),
+                    yatirimlar: norm(yatirimlarDB) // YENİ EKLENDİ
                 }));
             } catch (error) {
                 console.error("Veritabanından veri çekilirken hata oluştu:", error);
