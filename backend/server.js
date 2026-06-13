@@ -19,6 +19,8 @@ app.use("/api/departmanlar", require("./routes/departmanRoutes"));
 app.use("/api/kategoriler", require("./routes/kategoriRoutes"));
 app.use("/api/ai", require("./routes/aiRoutes"));
 
+app.use("/api/auth", require("./routes/authRoutes"));
+
 
 // Test Rotası (Ana sayfaya girilirse bu cevabı ver)
 app.get("/", (req, res) => {
