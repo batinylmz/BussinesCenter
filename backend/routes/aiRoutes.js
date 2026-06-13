@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const Anthropic = require("@anthropic-ai/sdk");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 router.post("/chat", async (req, res) => {
     const { messages, financialData } = req.body;
@@ -70,28 +70,38 @@ ${kategoriler.length > 0 ? kategoriler.map(k => `- ${k.ad}`).join(", ") : "Kateg
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
-    const stream = client.messages.stream({
-        model: "claude-opus-4-8",
-        max_tokens: 4000,
-        thinking: { type: "adaptive" },
-        system: systemPrompt,
-        messages: messages
-    });
+    try {
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-    req.on("close", () => stream.abort());
+        // Gemini chat geçmişi: son mesaj hariç history, son mesaj ayrı gönderilir
+        const history = messages.slice(0, -1).map(m => ({
+            role: m.role === "assistant" ? "model" : "user",
+            parts: [{ text: m.content }]
+        }));
+        const lastMessage = messages[messages.length - 1].content;
 
-    stream.on("text", (text) => {
-        res.write(`data: ${JSON.stringify({ text })}\n\n`);
-    });
+        const chat = model.startChat({
+            history,
+            systemInstruction: systemPrompt,
+        });
 
-    stream.on("error", (err) => {
+        const result = await chat.sendMessageStream(lastMessage);
+
+        req.on("close", () => result.stream.return());
+
+        for await (const chunk of result.stream) {
+            const text = chunk.text();
+            if (text) {
+                res.write(`data: ${JSON.stringify({ text })}\n\n`);
+            }
+        }
+
+        res.write("data: [DONE]\n\n");
+        res.end();
+    } catch (err) {
         res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
         res.end();
-    });
-
-    await stream.finalMessage();
-    res.write("data: [DONE]\n\n");
-    res.end();
+    }
 });
 
 module.exports = router;
