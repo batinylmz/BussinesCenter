@@ -47,7 +47,35 @@ export default function LoginPage() {
                     {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
                 </button>
                 <p style={{ textAlign: "center", fontSize: 12, color: C.textMuted, marginTop: 16 }}>
-                    Hesabın yok mu? <span style={{ color: C.primary, cursor: "pointer", fontWeight: 600 }}>Kayıt Ol</span>
+                    Hesabın yok mu?
+                    <span
+                        style={{ color: C.primary, cursor: "pointer", fontWeight: 600 }}
+                        onClick={async () => {
+                            try {
+                                const res = await fetch("http://localhost:5001/api/auth/register", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        email: "admin@businesscenter.com",
+                                        password: "demo123",
+                                        role: "admin",
+                                        name: "Admin Kullanıcı" // Belki isim zorunludur diye bunu da ekledik
+                                    })
+                                });
+                                const d = await res.json(); // Backend'den gelen cevabı okuyoruz
+
+                                if(res.ok) {
+                                    alert("✅ Kullanıcı başarıyla oluşturuldu! Şimdi Giriş Yap butonuna basabilirsin.");
+                                } else {
+                                    alert("❌ Backend'in itirazı var: " + (d.hata || d.mesaj));
+                                }
+                            } catch (err) {
+                                alert("Sunucuya ulaşılamadı.");
+                            }
+                        }}
+                    >
+    Kayıt Ol
+</span>
                 </p>
             </div>
         </div>
