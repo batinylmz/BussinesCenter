@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const Anthropic = require("@anthropic-ai/sdk");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 router.post("/chat", async (req, res) => {
     const { messages, financialData } = req.body;
@@ -70,28 +70,44 @@ ${kategoriler.length > 0 ? kategoriler.map(k => `- ${k.ad}`).join(", ") : "Kateg
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
-    const stream = client.messages.stream({
-        model: "claude-opus-4-8",
-        max_tokens: 4000,
-        thinking: { type: "adaptive" },
-        system: systemPrompt,
-        messages: messages
-    });
+    try {
+        const model = genAI.getGenerativeModel({
+            model: "models/gemini-2.5-flash",
+            systemInstruction: { role: "system", parts: [{ text: systemPrompt }] }
+        });
 
-    req.on("close", () => stream.abort());
+        // Gemini chat geçmişi: son mesaj hariç history, son mesaj ayrı gönderilir
+        // Gemini her zaman 'user' rolüyle başlamalı — baştaki assistant mesajlarını at
+        const filtered = [...messages];
+        while (filtered.length > 0 && (filtered[0].role === "assistant" || filtered[0].role === "model")) {
+            filtered.shift();
+        }
 
-    stream.on("text", (text) => {
-        res.write(`data: ${JSON.stringify({ text })}\n\n`);
-    });
+        const history = filtered.slice(0, -1).map(m => ({
+            role: m.role === "assistant" ? "model" : "user",
+            parts: [{ text: m.content }]
+        }));
+        const lastMessage = filtered[filtered.length - 1].content;
 
-    stream.on("error", (err) => {
+        const chat = model.startChat({ history });
+
+        const result = await chat.sendMessageStream(lastMessage);
+
+        req.on("close", () => result.stream.return());
+
+        for await (const chunk of result.stream) {
+            const text = chunk.text();
+            if (text) {
+                res.write(`data: ${JSON.stringify({ text })}\n\n`);
+            }
+        }
+
+        res.write("data: [DONE]\n\n");
+        res.end();
+    } catch (err) {
         res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
         res.end();
-    });
-
-    await stream.finalMessage();
-    res.write("data: [DONE]\n\n");
-    res.end();
+    }
 });
 
 module.exports = router;
