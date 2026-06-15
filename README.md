@@ -44,21 +44,9 @@ ANTHROPIC_API_KEY=sk-ant-api03-...buraya_kendi_keyini_yaz
 
 ---
 
-### Adım 4 — Veritabanına test verisi yükle
 
-```bash
-cd backend
-node seed.js
-```
 
-Çıktı:
-```
-✅ Tüm veriler başarıyla MongoDB'ye yüklendi!
-```
-
----
-
-### Adım 5 — Admin kullanıcısı oluştur
+### Adım 4 — Admin kullanıcısı oluştur
 
 ```bash
 node scripts/createAdmin.js
@@ -75,7 +63,7 @@ node scripts/createAdmin.js
 
 ---
 
-### Adım 6 — Backend'i başlat
+### Adım 5— Backend'i başlat
 
 ```bash
 node server.js
@@ -89,7 +77,7 @@ Sunucu 5001 portunda ayaklandı.
 
 ---
 
-### Adım 7 — Frontend kurulumu ve başlatma
+### Adım 6 — Frontend kurulumu ve başlatma
 
 Yeni bir terminal aç:
 
@@ -103,7 +91,7 @@ Uygulama: [http://localhost:5173](http://localhost:5173)
 
 ---
 
-### Adım 8 — Giriş yap
+### Adım 7 — Giriş yap
 
 | Alan | Değer |
 |---|---|
@@ -159,16 +147,3 @@ BussinesCenter/
 
 ---
 
-## Sık Karşılaşılan Hatalar
-
-**"Sunucuya bağlanılamadı" (Login ekranı)**
-→ Backend çalışmıyor olabilir. `node server.js` komutunu çalıştır.
-→ `authRoutes` mount edilmemiş olabilir. `server.js`'de `/api/auth` satırı var mı kontrol et.
-
-**"Could not connect to any servers in your MongoDB Atlas cluster"**
-→ Atlas panelinde **Network Access** → IP adresini whitelist'e ekle.
-→ `.env` dosyasındaki `MONGO_URI` doğru mu kontrol et.
-
-**AI asistan yanıt vermiyor**
-→ `backend/.env` içinde `ANTHROPIC_API_KEY` tanımlı mı kontrol et.
-→ Backend yeniden başlatılmış mı kontrol et.
