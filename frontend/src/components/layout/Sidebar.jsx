@@ -12,19 +12,20 @@ import {
     AiOutlineBank,
     AiOutlineAppstore,
     AiOutlineRobot,
+    AiOutlineLogout,
 } from "react-icons/ai";
 
 const NAV = [
-    { path: "/", label: "Dashboard", Icon: AiOutlineHome },
-    { path: "/gelirler", label: "Gelirler", Icon: AiOutlineDollarCircle },
-    { path: "/giderler", label: "Giderler", Icon: AiOutlineCreditCard },
-    { path: "/yatirimlar", label: "Yatırımlar", Icon: AiOutlineLineChart },
-    { path: "/butce", label: "Bütçe", Icon: AiOutlinePieChart },
-    { path: "/raporlar", label: "Raporlar", Icon: AiOutlineFileText },
-    { path: "/projeler", label: "Projeler", Icon: AiOutlineProject },
-    { path: "/departmanlar", label: "Departmanlar", Icon: AiOutlineBank },
-    { path: "/kategoriler", label: "Kategoriler", Icon: AiOutlineAppstore },
-    { path: "/ai", label: "AI Asistan", Icon: AiOutlineRobot },
+    { path: "/", label: "Dashboard", Icon: AiOutlineHome, color: "#8b5cf6" },
+    { path: "/gelirler", label: "Gelirler", Icon: AiOutlineDollarCircle, color: "#10b981" },
+    { path: "/giderler", label: "Giderler", Icon: AiOutlineCreditCard, color: "#ef4444" },
+    { path: "/yatirimlar", label: "Yatırımlar", Icon: AiOutlineLineChart, color: "#f59e0b" },
+    { path: "/butce", label: "Bütçe", Icon: AiOutlinePieChart, color: "#3b82f6" },
+    { path: "/raporlar", label: "Raporlar", Icon: AiOutlineFileText, color: "#6366f1" },
+    { path: "/projeler", label: "Projeler", Icon: AiOutlineProject, color: "#ec4899" },
+    { path: "/departmanlar", label: "Departmanlar", Icon: AiOutlineBank, color: "#64748b" },
+    { path: "/kategoriler", label: "Kategoriler", Icon: AiOutlineAppstore, color: "#06b6d4" },
+    { path: "/ai", label: "AI Asistan", Icon: AiOutlineRobot, color: "#a855f7" },
 ];
 
 export default function Sidebar() {
@@ -48,9 +49,10 @@ export default function Sidebar() {
                             borderRadius: 10, marginBottom: 2, textDecoration: "none",
                             background: active ? C.primaryLight : "transparent",
                             color: active ? C.primary : C.textMuted,
+                            borderLeft: active ? `4px solid ${C.primary}` : "4px solid transparent",
                             fontSize: 14, fontWeight: active ? 700 : 500, transition: "all 0.12s",
                         }}>
-                            <item.Icon style={{ fontSize: 17, opacity: 0.85, flexShrink: 0 }} />
+                            <item.Icon style={{ fontSize: 17, color: active ? C.primary : item.color, opacity: 0.85, flexShrink: 0 }} />
                             {item.label}
                         </Link>
                     );
@@ -59,10 +61,10 @@ export default function Sidebar() {
             <div style={{ padding: "12px 10px", borderTop: `1px solid ${C.border}` }}>
                 <button onClick={logout} style={{
                     width: "100%", padding: "9px 12px", borderRadius: 10, border: "none", cursor: "pointer",
-                    background: "transparent", color: C.textMuted, fontSize: 13, fontWeight: 600,
+                    background: "transparent", color: "#ef4444", fontSize: 13, fontWeight: 600,
                     display: "flex", alignItems: "center", gap: 8, fontFamily: "inherit"
                 }}>
-                    ⬡ Çıkış Yap
+                    <AiOutlineLogout style={{ fontSize: 17, flexShrink: 0 }} /> Çıkış Yap
                 </button>
             </div>
         </aside>
