@@ -4,7 +4,7 @@ import { C, fmt, inputSt } from "../utils/constants";
 import { PageHeader, StatCard, Badge, ActionBtns, Modal, Field, Btn, BtnOutline } from "../components/SharedComponents";
 
 export default function ProjelerPage() {
-    const { data, setData } = useData();
+    const { data, setData, apiFetch } = useData();
     const [modal, setModal] = useState(false);
     const [form, setForm] = useState({ ad: "", departman: "", durum: "Planlama", butce: "", harcanan: "", bitis: "", oncelik: "Orta" });
     const [editing, setEditing] = useState(null);
@@ -21,7 +21,7 @@ export default function ProjelerPage() {
 
         try {
             if (editing) {
-                const res = await fetch(`http://localhost:5001/api/projeler/${editing.id}`, {
+                const res = await apiFetch(`http://localhost:5001/api/projeler/${editing.id}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(veri)
@@ -30,7 +30,7 @@ export default function ProjelerPage() {
                 guncel.id = guncel._id;
                 setData(d => ({ ...d, projeler: d.projeler.map(x => x.id === editing.id ? guncel : x) }));
             } else {
-                const res = await fetch("http://localhost:5001/api/projeler", {
+                const res = await apiFetch("http://localhost:5001/api/projeler", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(veri)
@@ -45,7 +45,7 @@ export default function ProjelerPage() {
 
     const del = async (id) => {
         try {
-            await fetch(`http://localhost:5001/api/projeler/${id}`, { method: "DELETE" });
+            await apiFetch(`http://localhost:5001/api/projeler/${id}`, { method: "DELETE" });
             setData(d => ({ ...d, projeler: d.projeler.filter(x => x.id !== id) }));
         } catch (error) {
             console.error("Proje silinirken hata:", error);

@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Proje = require("../models/Proje");
+const auth = require("../middleware/authMiddleware");
+const requireWriter = require("../middleware/requireWriter");
 
 router.get("/", async (req, res) => {
     try {
@@ -11,7 +13,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", auth, requireWriter, async (req, res) => {
     try {
         const yeniProje = new Proje(req.body);
         res.status(201).json(await yeniProje.save());
@@ -20,7 +22,7 @@ router.post("/", async (req, res) => {
     }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", auth, requireWriter, async (req, res) => {
     try {
         const guncellenen = await Proje.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.json(guncellenen);
@@ -29,7 +31,7 @@ router.put("/:id", async (req, res) => {
     }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, requireWriter, async (req, res) => {
     try {
         await Proje.findByIdAndDelete(req.params.id);
         res.json({ mesaj: "Proje silindi" });

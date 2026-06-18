@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const Gelir = require("../models/Gelir"); // Az önce oluşturduğumuz modeli çağırdık
+const Gelir = require("../models/Gelir");
+const auth = require("../middleware/authMiddleware");
+const requireWriter = require("../middleware/requireWriter");
 
-// 1. GET: Veritabanındaki tüm gelirleri çekip React'a gönder
 router.get("/", async (req, res) => {
     try {
         const gelirler = await Gelir.find().sort({ createdAt: -1 }); // En yeniler en üstte
@@ -12,8 +13,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-// 2. POST: React'tan gelen yeni geliri veritabanına kaydet
-router.post("/", async (req, res) => {
+router.post("/", auth, requireWriter, async (req, res) => {
     try {
         const yeniGelir = new Gelir(req.body);
         const kaydedilenGelir = await yeniGelir.save(); // Veritabanına yaz!
@@ -23,8 +23,7 @@ router.post("/", async (req, res) => {
     }
 });
 
-// 3. DELETE: React'tan gelen ID'ye göre geliri veritabanından sil
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, requireWriter, async (req, res) => {
     try {
         await Gelir.findByIdAndDelete(req.params.id);
         res.json({ mesaj: "Gelir başarıyla silindi" });
@@ -32,5 +31,5 @@ router.delete("/:id", async (req, res) => {
         res.status(500).json({ mesaj: "Gelir silinemedi", hata: err.message });
     }
 });
-router.put("/:id", async (req, res) => res.json(await Gelir.findByIdAndUpdate(req.params.id, req.body, { new: true })));
+router.put("/:id", auth, requireWriter, async (req, res) => res.json(await Gelir.findByIdAndUpdate(req.params.id, req.body, { new: true })));
 module.exports = router;

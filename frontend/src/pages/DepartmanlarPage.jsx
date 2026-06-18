@@ -4,7 +4,7 @@ import { C, fmt, inputSt } from "../utils/constants";
 import { PageHeader, StatCard, ActionBtns, Modal, Field, Btn, BtnOutline } from "../components/SharedComponents";
 
 export default function DepartmanlarPage() {
-    const { data, setData } = useData();
+    const { data, setData, apiFetch } = useData();
     const [modal, setModal] = useState(false);
     const [form, setForm] = useState({ ad: "", yonetici: "", calisan: "", butce: "", harcanan: "" });
     const [editing, setEditing] = useState(null);
@@ -21,7 +21,7 @@ export default function DepartmanlarPage() {
 
         try {
             if (editing) {
-                const res = await fetch(`http://localhost:5001/api/departmanlar/${editing.id}`, {
+                const res = await apiFetch(`http://localhost:5001/api/departmanlar/${editing.id}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(veri)
@@ -30,7 +30,7 @@ export default function DepartmanlarPage() {
                 guncel.id = guncel._id;
                 setData(d => ({ ...d, departmanlar: d.departmanlar.map(x => x.id === editing.id ? guncel : x) }));
             } else {
-                const res = await fetch("http://localhost:5001/api/departmanlar", {
+                const res = await apiFetch("http://localhost:5001/api/departmanlar", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(veri)
@@ -45,7 +45,7 @@ export default function DepartmanlarPage() {
 
     const del = async (id) => {
         try {
-            await fetch(`http://localhost:5001/api/departmanlar/${id}`, { method: "DELETE" });
+            await apiFetch(`http://localhost:5001/api/departmanlar/${id}`, { method: "DELETE" });
             setData(d => ({ ...d, departmanlar: d.departmanlar.filter(x => x.id !== id) }));
         } catch (error) {
             console.error("Departman silinirken hata:", error);

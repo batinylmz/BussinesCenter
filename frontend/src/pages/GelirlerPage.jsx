@@ -4,7 +4,7 @@ import { C, fmt, inputSt } from "../utils/constants";
 import { PageHeader, StatCard, Badge, ActionBtns, Modal, Field, Btn, BtnOutline } from "../components/SharedComponents";
 
 export default function GelirlerPage() {
-    const { data, setData } = useData();
+    const { data, setData, apiFetch } = useData();
     const [modal, setModal] = useState(false);
     const [form, setForm] = useState({ baslik: "", tutar: "", kategori: "", tarih: "", departman: "", aciklama: "" });
     const [yeniKategori, setYeniKategori] = useState("");
@@ -34,17 +34,17 @@ export default function GelirlerPage() {
 
         try {
             if (editing) {
-                const res = await fetch(`http://localhost:5001/api/gelirler/${editing.id}`, {
+                const res = await apiFetch(`http://localhost:5001/api/gelirler/${editing.id}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(veri)
                 });
                 const guncel = await res.json();
-                if (!res.ok) { alert("Hata: " + (guncel.mesaj || "Bilinmeyen hata")); return; }
+
                 guncel.id = guncel._id;
                 setData(d => ({ ...d, gelirler: d.gelirler.map(x => x.id === editing.id ? guncel : x) }));
             } else {
-                const res = await fetch("http://localhost:5001/api/gelirler", {
+                const res = await apiFetch("http://localhost:5001/api/gelirler", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(veri)
@@ -60,7 +60,7 @@ export default function GelirlerPage() {
 
     const del = async (id) => {
         try {
-            await fetch(`http://localhost:5001/api/gelirler/${id}`, { method: "DELETE" });
+            await apiFetch(`http://localhost:5001/api/gelirler/${id}`, { method: "DELETE" });
             setData(d => ({ ...d, gelirler: d.gelirler.filter(x => x.id !== id) }));
         } catch (error) { console.error("Gelir silinirken hata:", error); }
     };

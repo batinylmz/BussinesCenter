@@ -41,7 +41,7 @@ function buildQuickQuestions(data) {
 }
 
 export default function AIPage() {
-    const { data } = useData();
+    const { data, apiFetch } = useData();
     const [messages, setMessages] = useState([
         { role: "assistant", content: "Merhaba! BussinesCenter AI Asistanınım. Şirketinizin finansal verilerine tam erişimim var — giderler, gelirler, departman bütçeleri, projeler ve yatırımlar hakkında somut öneriler sunabilirim." }
     ]);
@@ -64,7 +64,7 @@ export default function AIPage() {
         setMessages(m => [...m, { role: "assistant", content: "" }]);
 
         try {
-            const res = await fetch(API_URL, {
+            const res = await apiFetch(API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

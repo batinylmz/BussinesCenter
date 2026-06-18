@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect } from "react";
+import { createContext, useState, useContext, useEffect, useCallback } from "react";
 
 const EMPTY_DATA = {
     gelirler: [],
@@ -16,6 +16,7 @@ export const DataProvider = ({ children }) => {
     const [data, setData] = useState(EMPTY_DATA);
     const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("token"));
     const [token, setToken] = useState(localStorage.getItem("token"));
+    const [toast, setToast] = useState(null);
 
     const login = (jwt) => {
         localStorage.setItem("token", jwt);
@@ -28,6 +29,23 @@ export const DataProvider = ({ children }) => {
         setToken(null);
         setLoggedIn(false);
     };
+
+    const showToast = useCallback((message, type = "error") => {
+        setToast({ message, type });
+    }, []);
+
+    const apiFetch = useCallback(async (url, options = {}) => {
+        const t = localStorage.getItem("token");
+        const headers = { ...options.headers };
+        if (t) headers["Authorization"] = `Bearer ${t}`;
+        const res = await fetch(url, { ...options, headers });
+        if (res.status === 403) {
+            showToast("Bu işlem için yetkiniz yok. Admin veya Manager rolü gereklidir.", "error");
+        } else if (res.status === 401) {
+            showToast("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.", "warning");
+        }
+        return res;
+    }, [showToast]);
 
     // SAYFA AÇILDIĞINDA TÜM VERİLERİ MONGODB'DEN ÇEK
     useEffect(() => {
@@ -72,7 +90,7 @@ export const DataProvider = ({ children }) => {
     }, []);
 
     return (
-        <DataContext.Provider value={{ data, setData, loggedIn, token, login, logout }}>
+        <DataContext.Provider value={{ data, setData, loggedIn, token, login, logout, apiFetch, toast, setToast }}>
             {children}
         </DataContext.Provider>
     );

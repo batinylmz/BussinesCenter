@@ -1,4 +1,36 @@
+import { useEffect } from "react";
 import { C } from "../utils/constants";
+
+export function Toast({ message, type = "error", onClose }) {
+    useEffect(() => {
+        const t = setTimeout(onClose, 3500);
+        return () => clearTimeout(t);
+    }, [onClose]);
+
+    const colors = {
+        error:   { bg: "#fef2f2", border: "#fca5a5", text: "#dc2626", icon: "🚫" },
+        warning: { bg: "#fffbeb", border: "#fcd34d", text: "#d97706", icon: "⚠️" },
+        success: { bg: "#f0fdf4", border: "#86efac", text: "#16a34a", icon: "✅" },
+    };
+    const s = colors[type] || colors.error;
+
+    return (
+        <div style={{
+            position: "fixed", top: 24, right: 24, zIndex: 9999,
+            background: s.bg, border: `1.5px solid ${s.border}`,
+            borderRadius: 12, padding: "14px 20px",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+            display: "flex", alignItems: "center", gap: 12,
+            minWidth: 280, maxWidth: 400,
+            animation: "toastIn 0.25s ease"
+        }}>
+            <span style={{ fontSize: 20 }}>{s.icon}</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: s.text, flex: 1 }}>{message}</span>
+            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: s.text, lineHeight: 1, padding: 0, opacity: 0.7 }}>×</button>
+            <style>{`@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}`}</style>
+        </div>
+    );
+}
 
 export function Field({ label, req, children }) {
     return (
