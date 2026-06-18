@@ -28,12 +28,24 @@ npm install
 MONGO_URI=mongodb+srv://<kullanici>:<sifre>@cluster0.xxxxx.mongodb.net/?appName=Cluster0
 JWT_SECRET=bussinescenter_super_secret_key_2024
 JWT_EXPIRES_IN=7d
+
 GEMINI_API_KEY=...buraya_kendi_keyini_yaz
+
+ANTHROPIC_API_KEY=sk-ant-api03-...buraya_kendi_keyini_yaz
+```
+
+> Anthropic API key için: [console.anthropic.com](https://console.anthropic.com) → API Keys → Create Key
+
+---
+
+
+
 ```
 
 > Gemini API key için: [aistudio.google.com](https://aistudio.google.com) → Get API Key
 
 ### Adım 4 — Backend'i başlat
+
 
 ```bash
 node server.js
@@ -45,7 +57,9 @@ node server.js
 Sunucu 5001 portunda ayaklandı.
 ```
 
+
 ### Adım 5 — Frontend kurulumu ve başlatma
+
 
 Yeni bir terminal aç:
 
@@ -57,14 +71,8 @@ npm run dev
 
 Uygulama: [http://localhost:5173](http://localhost:5173)
 
-### Adım 6 — Giriş yap
+### Adım 6 
 
-Login sayfasındaki **Kayıt Ol** butonuyla ilk admin kullanıcısını oluştur, ardından giriş yap:
-
-| Alan | Değer |
-|---|---|
-| E-posta | `admin@businesscenter.com` |
-| Şifre | `demo123` |
 
 ---
 

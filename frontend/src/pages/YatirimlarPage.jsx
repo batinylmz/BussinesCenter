@@ -10,10 +10,18 @@ export default function YatirimlarPage() {
     const [editing, setEditing] = useState(null);
     const TIPLER = ["Hisse", "Fon", "Tahvil", "Emtia", "Kripto", "ETF"];
 
+
     const toplamPortfoy = data.yatirimlar.reduce((s, x) => s + x.deger, 0);
     const toplamKarZarar = data.yatirimlar.reduce((s, x) => s + x.karZarar, 0);
-    const nakitRezev = 215000;
-    const bugunDegisim = 3240;
+    const bugunDegisim = 3240; // İstersen ileride bunu da dinamik yapabiliriz
+
+    // DİNAMİK NAKİT REZERVİ HESAPLAMASI
+    const toplamGelir = data.gelirler.reduce((s, x) => s + x.tutar, 0);
+    const toplamGider = data.giderler.reduce((s, x) => s + x.tutar, 0);
+    const yatirimaHarcanan = data.yatirimlar.reduce((s, x) => s + x.maliyet, 0);
+
+    // Şirketin kasasındaki boşta duran (yatırıma hazır) gerçek para
+    const nakitRezev = (toplamGelir - toplamGider) - yatirimaHarcanan;
 
     const open = (row = null) => {
         setEditing(row);
@@ -21,12 +29,71 @@ export default function YatirimlarPage() {
             : { ad: "", sembol: "", tip: "Hisse", alis: "", guncel: "", adet: "", maliyet: "", deger: "", karZarar: "" });
         setModal(true);
     };
-    const save = () => {
+
+    // GERÇEK BACKEND KAYDI (KORUMALI VERSİYON)
+    const save = async () => {
         if (!form.ad) return;
         const n = s => Number(s) || 0;
-        const item = { ...form, alis: n(form.alis), guncel: n(form.guncel), adet: n(form.adet), maliyet: n(form.maliyet), deger: n(form.deger), karZarar: n(form.karZarar), id: editing?.id || Date.now() };
-        setData(d => ({ ...d, yatirimlar: editing ? d.yatirimlar.map(x => x.id === editing.id ? item : x) : [...d.yatirimlar, item] }));
-        setModal(false);
+
+        const veri = {
+            ad: form.ad,
+            sembol: form.sembol,
+            tip: form.tip,
+            alis: n(form.alis),
+            guncel: n(form.guncel),
+            adet: n(form.adet),
+            maliyet: n(form.maliyet),
+            deger: n(form.deger),
+            karZarar: n(form.karZarar)
+        };
+
+        try {
+            if (editing) {
+                const res = await fetch(`http://localhost:5001/api/yatirimlar/${editing.id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(veri)
+                });
+                const guncel = await res.json();
+
+                if (!res.ok) {
+                    alert("Güncelleme Başarısız: " + (guncel.mesaj || guncel.hata || "Bilinmeyen Hata"));
+                    return;
+                }
+
+                guncel.id = guncel._id;
+                setData(d => ({ ...d, yatirimlar: d.yatirimlar.map(x => x.id === editing.id ? guncel : x) }));
+            } else {
+                const res = await fetch("http://localhost:5001/api/yatirimlar", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(veri)
+                });
+                const yeni = await res.json();
+
+                if (!res.ok) {
+                    alert("Kayıt Başarısız: " + (yeni.mesaj || yeni.hata || "Bilinmeyen Hata"));
+                    return;
+                }
+
+                yeni.id = yeni._id;
+                setData(d => ({ ...d, yatirimlar: [...d.yatirimlar, yeni] }));
+            }
+            setModal(false);
+        } catch (error) {
+            console.error("Yatırım kaydedilirken hata:", error);
+            alert("Sunucuya ulaşılamadı veya bağlantı koptu.");
+        }
+    };
+
+    // GERÇEK BACKEND SİLME (DELETE)
+    const del = async (id) => {
+        try {
+            await fetch(`http://localhost:5001/api/yatirimlar/${id}`, { method: "DELETE" });
+            setData(d => ({ ...d, yatirimlar: d.yatirimlar.filter(x => x.id !== id) }));
+        } catch (error) {
+            console.error("Yatırım silinirken hata:", error);
+        }
     };
 
     return (
@@ -48,7 +115,7 @@ export default function YatirimlarPage() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                         <div>
                             <div style={{ fontSize: 11, fontWeight: 700, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Toplam Kar/Zarar</div>
-                            <div style={{ fontSize: 30, fontWeight: 800, color: toplamKarZarar >= 0 ? C.success : C.danger }}>+₺{toplamKarZarar.toLocaleString("tr-TR")}</div>
+                            <div style={{ fontSize: 30, fontWeight: 800, color: toplamKarZarar >= 0 ? C.success : C.danger }}>{toplamKarZarar >= 0 ? "+" : ""}₺{toplamKarZarar.toLocaleString("tr-TR")}</div>
                         </div>
                         <span style={{ fontSize: 26 }}>📊</span>
                     </div>
@@ -105,7 +172,9 @@ export default function YatirimlarPage() {
                                 <td style={{ padding: "12px 14px", fontWeight: 700, color: y.karZarar >= 0 ? C.success : C.danger }}>
                                     {y.karZarar >= 0 ? "+" : ""}₺{y.karZarar.toLocaleString("tr-TR")}
                                 </td>
-                                <td style={{ padding: "12px 14px" }}><ActionBtns onEdit={() => open(y)} onDelete={() => setData(d => ({ ...d, yatirimlar: d.yatirimlar.filter(x => x.id !== y.id) }))} /></td>
+
+                                {/* SİLME BUTONU GERÇEK DEL FONKSİYONUNA BAĞLANDI */}
+                                <td style={{ padding: "12px 14px" }}><ActionBtns onEdit={() => open(y)} onDelete={() => del(y.id)} /></td>
                             </tr>
                         ))}
                         </tbody>

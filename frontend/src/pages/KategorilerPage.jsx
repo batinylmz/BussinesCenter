@@ -9,9 +9,14 @@ export default function KategorilerPage() {
     const [form, setForm] = useState({ ad: "", tip: "gelir", renk: "#2563eb", aciklama: "" });
     const [editing, setEditing] = useState(null);
 
+    // HAZIR KATEGORİ SEÇENEKLERİ
+    const STANDART_GELIR = ["Satış", "E-Ticaret", "Danışmanlık", "Proje Geliri", "Yatırım Geliri", "Diğer"];
+    const STANDART_GIDER = ["Maaş", "Kira", "Fatura", "Pazarlama", "Ofis Giderleri", "Vergi", "Diğer"];
+
     const gelirKats = data.kategoriler.filter(k => k.tip === "gelir");
     const giderKats = data.kategoriler.filter(k => k.tip === "gider");
 
+    // GELİR VE GİDER SAYFALARINDAKİ İŞLEMLERİ OTOMATİK SAYAN FONKSİYONLAR
     const getIslem = (katAd, tip) => {
         const list = tip === "gelir" ? data.gelirler : data.giderler;
         return list.filter(x => x.kategori === katAd).length;
@@ -26,13 +31,53 @@ export default function KategorilerPage() {
         setForm(row ? { ...row } : { ad: "", tip: "gelir", renk: "#2563eb", aciklama: "" });
         setModal(true);
     };
-    const save = () => {
-        if (!form.ad) return;
-        const item = { ...form, id: editing?.id || Date.now() };
-        setData(d => ({ ...d, kategoriler: editing ? d.kategoriler.map(x => x.id === editing.id ? item : x) : [...d.kategoriler, item] }));
-        setModal(false);
+
+    const save = async () => {
+        // BOŞ KAYIT ENGELİ (Uyarı eklendi)
+        if (!form.ad) {
+            alert("Lütfen menüden bir Kategori Adı seçiniz!");
+            return;
+        }
+
+        const veri = { ad: form.ad, tip: form.tip, renk: form.renk, aciklama: form.aciklama };
+
+        try {
+            if (editing) {
+                const res = await fetch(`http://localhost:5001/api/kategoriler/${editing.id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(veri)
+                });
+                const guncel = await res.json();
+                if (!res.ok) { alert("Güncelleme Başarısız: " + (guncel.mesaj || guncel.hata)); return; }
+                guncel.id = guncel._id;
+                setData(d => ({ ...d, kategoriler: d.kategoriler.map(x => x.id === editing.id ? guncel : x) }));
+            } else {
+                const res = await fetch("http://localhost:5001/api/kategoriler", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(veri)
+                });
+                const yeni = await res.json();
+                if (!res.ok) { alert("Kayıt Başarısız: " + (yeni.mesaj || yeni.hata)); return; }
+                yeni.id = yeni._id;
+                setData(d => ({ ...d, kategoriler: [...d.kategoriler, yeni] }));
+            }
+            setModal(false);
+        } catch (error) {
+            console.error("Kategori kaydedilirken hata:", error);
+            alert("Sunucuya ulaşılamadı.");
+        }
     };
-    const del = id => setData(d => ({ ...d, kategoriler: d.kategoriler.filter(x => x.id !== id) }));
+
+    const del = async (id) => {
+        try {
+            await fetch(`http://localhost:5001/api/kategoriler/${id}`, { method: "DELETE" });
+            setData(d => ({ ...d, kategoriler: d.kategoriler.filter(x => x.id !== id) }));
+        } catch (error) {
+            console.error("Kategori silinirken hata:", error);
+        }
+    };
 
     const KatTable = ({ kats, tip }) => (
         <div style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 14, marginBottom: 20 }}>
@@ -80,15 +125,27 @@ export default function KategorilerPage() {
 
             {modal && (
                 <Modal title={editing ? "Kategoriyi Düzenle" : "Yeni Kategori"} onClose={() => setModal(false)}>
-                    <Field label="Kategori Adı" req>
-                        <input style={inputSt} value={form.ad} onChange={e => setForm(f => ({ ...f, ad: e.target.value }))} placeholder="Kategori adı" />
-                    </Field>
+
                     <Field label="Tip">
-                        <select style={inputSt} value={form.tip} onChange={e => setForm(f => ({ ...f, tip: e.target.value }))}>
+                        <select
+                            style={inputSt}
+                            value={form.tip}
+                            onChange={e => setForm(f => ({ ...f, tip: e.target.value, ad: "" }))}
+                        >
                             <option value="gelir">Gelir Kategorisi</option>
                             <option value="gider">Gider Kategorisi</option>
                         </select>
                     </Field>
+
+                    <Field label="Kategori Adı" req>
+                        <select style={inputSt} value={form.ad} onChange={e => setForm(f => ({ ...f, ad: e.target.value }))}>
+                            <option value="" disabled>Seçiniz...</option>
+                            {(form.tip === "gelir" ? STANDART_GELIR : STANDART_GIDER).map(kat => (
+                                <option key={kat} value={kat}>{kat}</option>
+                            ))}
+                        </select>
+                    </Field>
+
                     <Field label="Renk">
                         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                             {PRESET_COLORS.map(col => (

@@ -21,7 +21,7 @@ app.use("/api/butce",        require("./routes/butceRoutes"));
 app.use("/api/raporlar",     require("./routes/raporRoutes"));
 app.use("/api/auth",         require("./routes/authRoutes"));
 app.use("/api/ai",           require("./routes/aiRoutes"));
-
+app.use("/api/yatirimlar", require("./routes/yatirimRoutes"));
 app.get("/", (req, res) => {
     res.send("BussinesCenter Backend Çalışıyor 🚀");
 });
