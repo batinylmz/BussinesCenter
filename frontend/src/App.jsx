@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useData } from "./context/DataContext";
 import Sidebar from "./components/layout/Sidebar";
+import { Toast } from "./components/SharedComponents";
 
 import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
@@ -16,11 +17,12 @@ import AIPage from "./pages/AIPage";
 import { C } from "./utils/constants";
 
 function ProtectedLayout() {
-    const { loggedIn } = useData();
+    const { loggedIn, toast, setToast } = useData();
     if (!loggedIn) return <Navigate to="/login" replace />;
 
     return (
         <div style={{ display: "flex", minHeight: "100vh", background: C.bg, fontFamily: "'Segoe UI',system-ui,sans-serif" }}>
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             <Sidebar />
             <main style={{ marginLeft: 220, flex: 1, padding: "28px 32px", minHeight: "100vh" }}>
                 <Routes>

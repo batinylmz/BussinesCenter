@@ -4,7 +4,7 @@ import { C, fmt, inputSt } from "../utils/constants";
 import { PageHeader, StatCard, Badge, ActionBtns, Modal, Field, Btn, BtnOutline } from "../components/SharedComponents";
 
 export default function GiderlerPage() {
-    const { data, setData } = useData();
+    const { data, setData, apiFetch } = useData();
     const [modal, setModal] = useState(false);
     const [form, setForm] = useState({ baslik: "", tutar: "", kategori: "", tarih: "", departman: "", aciklama: "" });
     const [editing, setEditing] = useState(null);
@@ -24,7 +24,7 @@ export default function GiderlerPage() {
 
         try {
             if (editing) {
-                const res = await fetch(`http://localhost:5001/api/giderler/${editing.id}`, {
+                const res = await apiFetch(`http://localhost:5001/api/giderler/${editing.id}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(veri)
@@ -33,7 +33,7 @@ export default function GiderlerPage() {
                 guncel.id = guncel._id;
                 setData(d => ({ ...d, giderler: d.giderler.map(x => x.id === editing.id ? guncel : x) }));
             } else {
-                const res = await fetch("http://localhost:5001/api/giderler", {
+                const res = await apiFetch("http://localhost:5001/api/giderler", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(veri)
@@ -48,7 +48,7 @@ export default function GiderlerPage() {
 
     const del = async (id) => {
         try {
-            await fetch(`http://localhost:5001/api/giderler/${id}`, { method: "DELETE" });
+            await apiFetch(`http://localhost:5001/api/giderler/${id}`, { method: "DELETE" });
             setData(d => ({ ...d, giderler: d.giderler.filter(x => x.id !== id) }));
         } catch (error) {
             console.error("Gider silinirken hata:", error);

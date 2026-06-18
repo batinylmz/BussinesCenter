@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Kategori = require("../models/Kategori");
+const auth = require("../middleware/authMiddleware");
+const requireWriter = require("../middleware/requireWriter");
 
 router.get("/", async (req, res) => {
     try {
@@ -10,7 +12,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", auth, requireWriter, async (req, res) => {
     try {
         res.status(201).json(await new Kategori(req.body).save());
     } catch (err) {
@@ -18,7 +20,7 @@ router.post("/", async (req, res) => {
     }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", auth, requireWriter, async (req, res) => {
     try {
         res.json(await Kategori.findByIdAndUpdate(req.params.id, req.body, { new: true }));
     } catch (err) {
@@ -26,7 +28,7 @@ router.put("/:id", async (req, res) => {
     }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, requireWriter, async (req, res) => {
     try {
         await Kategori.findByIdAndDelete(req.params.id);
         res.json({ mesaj: "Kategori silindi" });

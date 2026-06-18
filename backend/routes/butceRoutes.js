@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Butce = require("../models/Butce");
+const auth = require("../middleware/authMiddleware");
+const requireWriter = require("../middleware/requireWriter");
 
 router.get("/", async (req, res) => {
     try {
@@ -11,7 +13,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", auth, requireWriter, async (req, res) => {
     try {
         const yeni = new Butce(req.body);
         const kaydedilen = await yeni.save();
@@ -21,7 +23,7 @@ router.post("/", async (req, res) => {
     }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", auth, requireWriter, async (req, res) => {
     try {
         const guncellenen = await Butce.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.json(guncellenen);
@@ -30,7 +32,7 @@ router.put("/:id", async (req, res) => {
     }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, requireWriter, async (req, res) => {
     try {
         await Butce.findByIdAndDelete(req.params.id);
         res.json({ mesaj: "Bütçe silindi" });
